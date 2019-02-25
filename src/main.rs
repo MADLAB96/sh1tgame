@@ -1,5 +1,3 @@
-//! Displays a shaded sphere to the user.
-
 use amethyst::{
     assets::{PrefabLoader, PrefabLoaderSystem, Processor, RonFormat},
     core::{frame_limiter::FrameRateLimitStrategy, transform::TransformBundle, Time},
@@ -9,16 +7,16 @@ use amethyst::{
     prelude::*,
     renderer::{DrawShaded, PosNormTex},
     shrev::{EventChannel, ReaderId},
-    ui::{UiBundle, UiCreator, UiEvent, UiFinder, UiText},
+    ui::{UiBundle, UiCreator, UiEvent, UiFinder, UiText, UiEventType},
     utils::{
-        application_root_dir,
         fps_counter::{FPSCounter, FPSCounterBundle},
         scene::BasicScenePrefab,
     },
     winit::VirtualKeyCode,
 };
-
-// use amethyst::log::info;
+use crate::game::Gameplay;
+pub mod game;
+// use amethyst_core::specs::prelude::Entity;
 
 type MyPrefabData = BasicScenePrefab<Vec<PosNormTex>>;
 
@@ -56,11 +54,19 @@ impl SimpleState for Example {
                 }
             }
             StateEvent::Ui(ui_event) => {
+                // println!("{}", ui_event.event_type);
+                // LogLevelFilter.
                 // info!(
                 //     "[HANDLE_EVENT] You just interacted with a ui element: {:?}",
                 //     ui_event
                 // );
-                Trans::None
+                if ui_event.event_type == UiEventType::Click {
+                    std::format!("{:?}", ui_event.target);
+                    // TODO: Create Gameplay State.
+                    Trans::Switch(Box::new(Gameplay))
+                } else {
+                    Trans::None
+                }
             }
         }
     }
@@ -112,7 +118,11 @@ impl SimpleState for Example {
 }
 
 fn main() -> amethyst::Result<()> {
-    amethyst::start_logger(Default::default());
+    amethyst::Logger::from_config(Default::default())
+                .level_for("gfx_device_gl", amethyst::LogLevelFilter::Warn)
+                .level_for("gfx_glyph", amethyst::LogLevelFilter::Error)
+                .level_for("ui", amethyst::LogLevelFilter::Info)
+                .start();
 
     // let app_root = application_root_dir();
 
